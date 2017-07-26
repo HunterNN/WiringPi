@@ -47,7 +47,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
@@ -164,6 +163,26 @@ int wiringPiI2CReadReg16 (int fd, int reg)
 int wiringPiI2CWrite (int fd, int data)
 {
   return i2c_smbus_access (fd, I2C_SMBUS_WRITE, data, I2C_SMBUS_BYTE, NULL) ;
+}
+
+
+/*
+ * wiringPiI2CWriteBlock:
+ *	Write block data
+ *********************************************************************************
+ */
+
+int wiringPiI2CWriteBlock (int fd, int size, uint8_t *data)
+{
+  if (size > 1) {
+    uint8_t first_data = data[0];
+    uint8_t *rest_data = data;
+    rest_data[0] = size;
+    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, I2C_SMBUS_BLOCK_DATA, rest_data) ;
+  } else {
+    uint8_t first_data = data[0];
+    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, size, NULL) ;
+  }
 }
 
 
