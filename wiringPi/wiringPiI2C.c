@@ -133,12 +133,14 @@ int wiringPiI2CRead (int fd)
  *********************************************************************************
  */
 
-int wiringPiI2CReadBlock (int fd, int *size, uint8_t *data)
+int wiringPiI2CReadBlock (int fd, int size, uint8_t *data)
 {
   int i;
   union i2c_smbus_data raw_data;
+  
+  raw_data.block[0] = size;
 
-  if (i2c_smbus_access (fd, I2C_SMBUS_READ, 1, I2C_SMBUS_BLOCK_DATA, &raw_data))
+  if (i2c_smbus_access (fd, I2C_SMBUS_READ, 1, I2C_SMBUS_I2C_BLOCK_DATA, &raw_data))
     return -1 ;
 
   int block_size = (int) raw_data.block[0];
@@ -147,9 +149,11 @@ int wiringPiI2CReadBlock (int fd, int *size, uint8_t *data)
     block_data[i] = raw_data.block[i + 1]; 
   }
 
-  data = block_data;
-  size = &block_size;
-  return 0;
+  for (i = 0; i < block_size; i++) {
+    data[i] = block_data[i];
+  }
+
+  return block_size;
 }
 
 
@@ -207,8 +211,8 @@ int wiringPiI2CWriteBlock (int fd, int size, uint8_t *data)
     for (i = 0; i < size + 1; i++) {
         block_data.block[i] = data[i];
     }
-    block_data.block[0] = size;
-    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, I2C_SMBUS_BLOCK_DATA, &block_data) ;
+    block_data.block[0] = size - 1;
+    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, I2C_SMBUS_I2C_BLOCK_DATA, &block_data) ;
   } else {
     uint8_t first_data = data[0];
     return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, size, NULL) ;

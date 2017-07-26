@@ -29,7 +29,7 @@ extern "C" {
 #include <stdint.h>
 
 extern int wiringPiI2CRead           (int fd) ;
-extern int wiringPiI2CReadBlock      (int fd, int *size, uint8_t *data) ;
+extern int wiringPiI2CReadBlock      (int fd, int size, uint8_t *data) ;
 extern int wiringPiI2CReadReg8       (int fd, int reg) ;
 extern int wiringPiI2CReadReg16      (int fd, int reg) ;
 
