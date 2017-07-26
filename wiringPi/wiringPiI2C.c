@@ -128,6 +128,32 @@ int wiringPiI2CRead (int fd)
 
 
 /*
+ * wiringPiI2CReadBlock:
+ *	Read block data
+ *********************************************************************************
+ */
+
+int wiringPiI2CReadBlock (int fd, int *size, uint8_t *data)
+{
+  int i;
+  union i2c_smbus_data raw_data;
+
+  if (i2c_smbus_access (fd, I2C_SMBUS_READ, 1, I2C_SMBUS_BLOCK_DATA, &raw_data))
+    return -1 ;
+
+  int block_size = (int) raw_data.block[0];
+  uint8_t block_data[block_size];
+  for (i = 0; i < block_size; i++) {
+    block_data[i] = raw_data.block[i + 1]; 
+  }
+
+  data = block_data;
+  size = &block_size;
+  return 0;
+}
+
+
+/*
  * wiringPiI2CReadReg8: wiringPiI2CReadReg16:
  *	Read an 8 or 16-bit value from a regsiter on the device
  *********************************************************************************
@@ -174,11 +200,15 @@ int wiringPiI2CWrite (int fd, int data)
 
 int wiringPiI2CWriteBlock (int fd, int size, uint8_t *data)
 {
+  int i;
+  union i2c_smbus_data block_data;
   if (size > 1) {
     uint8_t first_data = data[0];
-    uint8_t *rest_data = data;
-    rest_data[0] = size;
-    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, I2C_SMBUS_BLOCK_DATA, rest_data) ;
+    for (i = 0; i < size + 1; i++) {
+        block_data.block[i] = data[i];
+    }
+    block_data.block[0] = size;
+    return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, I2C_SMBUS_BLOCK_DATA, &block_data) ;
   } else {
     uint8_t first_data = data[0];
     return i2c_smbus_access (fd, I2C_SMBUS_WRITE, first_data, size, NULL) ;
