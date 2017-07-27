@@ -133,14 +133,14 @@ int wiringPiI2CRead (int fd)
  *********************************************************************************
  */
 
-int wiringPiI2CReadBlock (int fd, int size, uint8_t *data)
+int wiringPiI2CReadBlock (int fd, int size, uint8_t reg, uint8_t *data)
 {
   int i;
   union i2c_smbus_data raw_data;
   
   raw_data.block[0] = size;
 
-  if (i2c_smbus_access (fd, I2C_SMBUS_READ, 1, I2C_SMBUS_I2C_BLOCK_DATA, &raw_data))
+  if (i2c_smbus_access (fd, I2C_SMBUS_READ, reg, I2C_SMBUS_I2C_BLOCK_DATA, &raw_data))
     return -1 ;
 
   int block_size = (int) raw_data.block[0];
